@@ -1,70 +1,65 @@
-import { PNG } from "pngjs";
-import fs from "fs";
 import sharp from "sharp";
+
+const radius = 256; // Radius touching the edges
+const tolerance = 2; // Increased tolerance for edge pixels
+
 
 const isPixelInsideCircle = (x, y, centerX, centerY, radius) => {
   const dx = x - centerX;
   const dy = y - centerY;
-  return dx * dx + dy * dy <= radius * radius;
+  return dx * dx + dy * dy <= (radius + tolerance) * (radius + tolerance);
 };
 
-const checkPixels = (data, width, height, centerX, centerY, radius) => {
+
+
+const checkPixels = (data, width, height) => {
+  const centerX = width / 2;
+  const centerY = height / 2;
+
   for (let y = 0; y < height; y++) {
     for (let x = 0; x < width; x++) {
-      const idx = (width * y + x) << 2;
-      // If pixel is not transparent
+      // Assume RGBA data
+      const idx = (width * y + x) * 4;
       if (data[idx + 3] !== 0) {
+        // check if pixel is not transparent
         if (!isPixelInsideCircle(x, y, centerX, centerY, radius)) {
-          return "Pixels are outside the designated circle.";
+          console.log(
+            `Pixel at (${x}, ${y}) is outside the designated circle.`
+          );
+          return `Pixel at (${x}, ${y}) is outside the designated circle.`;
         }
-        // Check for "happy" feeling colors
         if (data[idx] < 128 || data[idx + 1] < 128 || data[idx + 2] < 128) {
-          return "Colors are not bright enough to give a happy feeling.";
+            return "Colors are not bright enough to give a happy feeling.";
         }
       }
     }
   }
-  return null;
+  return "All checks passed. The image fits the criteria.";
 };
+
+
 
 export const verifyBadge = async (filePath) => {
-  return new Promise((resolve, reject) => {
-    fs.createReadStream(filePath)
-      .on("error", (err) => reject("Failed to read file: " + err))
-      .pipe(new PNG())
-      .on("parsed", function () {
-        const expectedSize = 512;
-        console.log(typeof(this.width))
-        console.log(this.height)
-        if (this.width != expectedSize || this.height != expectedSize) {
-          reject("Image must be 512x512 pixels.");
-          return;
+    try {
+        const { data, info } = await sharp(filePath)
+            .ensureAlpha()
+            .resize(512, 512)
+            .raw()
+            .toBuffer({ resolveWithObject: true });
+
+        const result = checkPixels(data, info.width, info.height);
+        if (result !== "All checks passed. The image fits the criteria.") {
+            throw new Error(result);
         }
-
-        const centerX = this.width / 2;
-        const centerY = this.height / 2;
-        const radius = this.width / 2;
-
-        const pixelCheckResult = checkPixels(
-          this.data,
-          this.width,
-          this.height,
-          centerX,
-          centerY,
-          radius
-        );
-        if (pixelCheckResult !== null) {
-          reject(pixelCheckResult);
-          return;
-        }
-
-        resolve("The badge is valid.");
-      })
-      .on("error", (err) =>
-        reject("Invalid file signature, possibly not a PNG: " + err)
-      );
-  });
+        console.log("The badge is valid.");
+        return "The badge is valid.";
+    } catch (error) {
+        console.error("Error processing badge:", error);
+        throw error;
+    }
 };
+
+
 
 export const convertToBadge = async (inputFilePath, outputFilePath) => {
   const targetSize = 512;
