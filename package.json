@@ -1,0 +1,24 @@
+{
+    "name": "playmakers",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "start": "node ./src/server.js",
+        "start:dev": "cross-env NODE_ENV=development nodemon --exec 'node ./src/server.js'"
+    },
+    "dependencies": {
+        "cookie-parser": "^1.4.6",
+        "cors": "^2.8.5",
+        "dotenv": "^16.4.5",
+        "express": "^4.19.2",
+        "express-async-handler": "^1.2.0",
+        "morgan": "^1.10.0",
+        "multer": "^1.4.5-lts.1",
+        "pngjs": "^7.0.0",
+        "sharp": "^0.33.3"
+    },
+    "devDependencies": {
+        "cross-env": "^7.0.3",
+        "nodemon": "^3.1.0"
+    }
+}
