@@ -54,4 +54,4 @@ To setup the app,
 
 ## Postman documentation
 
-https://documenter.getpostman.com/view/11998048/UUxwBUSq
+https://documenter.getpostman.com/view/11998048/2sA3Bt29VZ

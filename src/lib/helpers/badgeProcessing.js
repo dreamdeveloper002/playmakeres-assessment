@@ -34,7 +34,9 @@ export const verifyBadge = async (filePath) => {
       .pipe(new PNG())
       .on("parsed", function () {
         const expectedSize = 512;
-        if (this.width >= expectedSize || this.height >= expectedSize) {
+        console.log(typeof(this.width))
+        console.log(this.height)
+        if (this.width != expectedSize || this.height != expectedSize) {
           reject("Image must be 512x512 pixels.");
           return;
         }
